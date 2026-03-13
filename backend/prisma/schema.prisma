@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Route {
+  id              Int      @id @default(autoincrement())
+  routeId         String   @unique @map("route_id")
+  vesselType      String   @map("vessel_type")
+  fuelType        String   @map("fuel_type")
+  year            Int
+  ghgIntensity    Float    @map("ghg_intensity")
+  fuelConsumption Float    @map("fuel_consumption")
+  distance        Float
+  totalEmissions  Float    @map("total_emissions")
+  isBaseline      Boolean  @default(false) @map("is_baseline")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("routes")
+}
+
+model ShipCompliance {
+  id        Int      @id @default(autoincrement())
+  shipId    String   @map("ship_id")
+  year      Int
+  cbGco2eq  Float    @map("cb_gco2eq")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([shipId, year])
+  @@map("ship_compliance")
+}
+
+model BankEntry {
+  id           Int      @id @default(autoincrement())
+  shipId       String   @map("ship_id")
+  year         Int
+  amountGco2eq Float    @map("amount_gco2eq")
+  entryType    String   @map("entry_type") // 'bank' or 'apply'
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("bank_entries")
+}
+
+model Pool {
+  id        Int          @id @default(autoincrement())
+  year      Int
+  name      String       @default("")
+  createdAt DateTime     @default(now()) @map("created_at")
+  members   PoolMember[]
+
+  @@map("pools")
+}
+
+model PoolMember {
+  id       Int    @id @default(autoincrement())
+  poolId   Int    @map("pool_id")
+  shipId   String @map("ship_id")
+  cbBefore Float  @map("cb_before")
+  cbAfter  Float  @map("cb_after")
+  pool     Pool   @relation(fields: [poolId], references: [id])
+
+  @@map("pool_members")
+}
