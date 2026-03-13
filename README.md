@@ -5,27 +5,44 @@ A modern, full-stack SaaS application for monitoring and managing **FuelEU Marit
 ## Architecture
 
 Both frontend and backend follow **Hexagonal Architecture (Ports & Adapters)**, ensuring clean separation of concerns:
-
 ```
-┌─────────────────────────────────────────────┐
-│                   CORE                       │
-│  ┌─────────┐  ┌──────────┐  ┌─────────┐   │
-│  │ Domain  │  │ Use Cases│  │  Ports  │    │
-│  │Entities │→ │(App Logic)│→ │(Interfaces)│ │
-│  └─────────┘  └──────────┘  └─────────┘   │
-│         ↑ no framework dependencies ↑       │
-├─────────────────────────────────────────────┤
-│               ADAPTERS                       │
-│  Inbound: HTTP Controllers (Express)         │
-│  Outbound: PostgreSQL Repositories (Prisma)  │
-│  UI: React Components + Hooks                │
-│  Infrastructure: REST API Clients            │
-├─────────────────────────────────────────────┤
-│             INFRASTRUCTURE                   │
-│  Express Server, Prisma DB, Vite             │
-└─────────────────────────────────────────────┘
-```
+┌─────────────────────────────────────────────────────────────┐
+│                          CORE                               │
+│                                                             │
+│   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   │
+│   │   Domain      │   │  Application │   │    Ports      │   │
+│   │   Entities    │──▶│  Use Cases   │──▶│  Interfaces   │   │
+│   │   Services    │   │  (App Logic) │   │  (Contracts)  │   │
+│   └──────────────┘   └──────────────┘   └──────┬───────┘   │
+│                                                 │           │
+│            ⚠ No framework dependencies          │           │
+└─────────────────────────────────────────────────┼───────────┘
+                                                  │
+                      ┌───────────────────────────┼───────────────────────────┐
+                      │                     ADAPTERS                          │
+                      │                                                       │
+                      │  ┌─────────────────────┐   ┌───────────────────────┐  │
+                      │  │  📥 Inbound          │   │  📤 Outbound          │  │
+                      │  │  HTTP Controllers    │   │  PostgreSQL Repos     │  │
+                      │  │  (Express Routes)    │   │  (Prisma ORM)         │  │
+                      │  └─────────────────────┘   └───────────────────────┘  │
+                      │  ┌─────────────────────┐   ┌───────────────────────┐  │
+                      │  │  🖥️ UI Adapter       │   │  🌐 API Adapter       │  │
+                      │  │  React Components   │   │  REST API Clients     │  │
+                      │  │  Hooks & Pages       │   │  (fetch / axios)      │  │
+                      │  └─────────────────────┘   └───────────────────────┘  │
+                      └───────────────────────────────────────────────────────┘
+                                                  │
+                      ┌───────────────────────────┼───────────────────────────┐
+                      │                   INFRASTRUCTURE                      │
+                      │                                                       │
+                      │   Express Server  •  Prisma DB  •  Vite Bundler       │
+                      │   PostgreSQL      •  React DOM  •  TailwindCSS        │
+                      └───────────────────────────────────────────────────────┘
 
+  Dependency Rule:  CORE ──▶ PORTS ◀── ADAPTERS ◀── INFRASTRUCTURE
+                    (Core never imports frameworks or external libraries)
+```
 **Key principle**: Core layer has ZERO framework dependencies. Domain services are pure TypeScript functions.
 
 ## Tech Stack
